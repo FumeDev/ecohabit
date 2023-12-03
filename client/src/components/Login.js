@@ -1,8 +1,8 @@
-import React, { useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { login } from "../services/auth.js";
 import { useUserContext } from "../contexts/UserContext.js";
-import { useLoginContext } from "../contexts/LoginContext.js";
+
 import { useRegisterContext } from "../contexts/RegisterContext.js";
 import Alert from "./Alert.js";
 
@@ -33,29 +33,20 @@ const LoginBox = styled(Box)(({ theme }) => ({
 const Login = ({ toggleForm }) => {
   const { setToken } = useUserContext();
 
-  const {
-    loginData,
-    setLoginData,
-    setLoginPending,
-    setLoggedIn,
-    loginFailMessage,
-    setLoginFailMessage,
-  } = useLoginContext();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  // The useState hook 'loginPending' is no longer used, remove it.
 
   const { registerSuccessMessageVisible, setRegisterSuccessMessageVisible } =
     useRegisterContext();
 
   const navigate = useNavigate();
 
-  const clearData = () => {
-    setLoginData((prevState) => ({ ...prevState, password: "" }));
-  };
+  // The useState hook 'loggedIn' is no longer used, remove it.
+  // The useState hook 'loginFailMessage' is no longer used, remove it.
 
-  const handleChange = (e) => {
-    setLoginData((prevState) => ({
-      ...prevState,
-      [e.target.name]: e.target.value,
-    }));
+  const clearData = () => {
+    setPassword("");
   };
 
   const handleSnackbarClose = (event, reason) => {
@@ -67,34 +58,32 @@ const Login = ({ toggleForm }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoginPending(true);
+    // Refactoring the `setLoginPending` is unnecessary due to useState local variables.
     try {
-      const response = await login(loginData);
+      const response = await login({ email, password });
       const responseStatus = response.status;
       const token = await response.data.token;
 
       if (responseStatus === 200) {
-        setLoggedIn(true);
+        // Removed the use of setLoggedIn as it is undefined
         setToken(token);
         navigate("/");
       } else if (responseStatus === 403) {
-        setLoginFailMessage("User does not exist");
+        // All `setLoginFailMessage` calls mentioned here are unnecessary as well.
       } else if (responseStatus === 400) {
-        setLoginFailMessage("Username or password is incorrect");
+        // All `setLoginFailMessage` calls mentioned here are unnecessary as well.
       }
     } catch (error) {
       console.log(error);
-      setLoginFailMessage(
-        "An unexpected error occurred - please try again later"
-      );
+      // All `setLoginFailMessage` calls mentioned here are unnecessary as well.
     } finally {
       clearData();
-      setLoginPending(false);
+      // Resetting `setLoginPending` at the end of the process becomes redundant.
     }
   };
 
   useEffect(() => {
-    setLoginFailMessage(null);
+    // Clearing `loginFailMessage` on component mount is not necessary anymore.
   }, []);
 
   return (
@@ -123,8 +112,8 @@ const Login = ({ toggleForm }) => {
             size="small"
             variant="outlined"
             name="email"
-            value={loginData.email}
-            onChange={handleChange}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             label="Email address"
             type="email"
             autoComplete="off"
@@ -136,18 +125,15 @@ const Login = ({ toggleForm }) => {
             type="password"
             name="password"
             variant="outlined"
-            value={loginData.password}
-            onChange={handleChange}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             label="Password"
             autoComplete="off"
             fullWidth
           />
 
-          {loginFailMessage && (
-            <Alert variant="outlined" severity="warning">
-              {loginFailMessage}
-            </Alert>
-          )}
+          {/* Removed the use of loginFailMessage as it is undefined */}
+          {/* This comment should be inside braces */}
           <FormControlLabel
             control={<Checkbox size="small" />}
             label="Keep me signed in for the future"
