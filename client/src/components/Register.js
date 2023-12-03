@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { register } from "../services/auth.js";
-import { useRegisterContext } from "../contexts/RegisterContext.js";
+
 import Alert from "./Alert.js";
 
 import {
@@ -27,49 +27,41 @@ const RegisterBox = styled(Box)(({ theme }) => ({
 }));
 
 const Register = ({ toggleForm }) => {
-  const {
-    registerData,
-    setRegisterData,
-    setRegisterSuccessMessageVisible,
-    registerFailMessage,
-    setRegisterFailMessage,
-  } = useRegisterContext();
-
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [errMessage, setErrMessage] = useState("");
+  const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [acceptTerms, setAcceptTerms] = useState(false);
-  const [err, setErr] = useState("");
+
+  const [registerFailMessage, setRegisterFailMessage] = useState("");
 
   const clearData = () => {
-    setRegisterData((prevState) => ({ ...prevState, password: "" }));
+    setPassword("");
     setConfirmPassword("");
     setAcceptTerms(false);
-    setErr("");
-  };
-
-  const handleChange = (e) => {
-    setRegisterData((prevState) => ({
-      ...prevState,
-      [e.target.name]: e.target.value,
-    }));
+    setErrMessage("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (confirmPassword !== registerData.password) {
+    if (confirmPassword !== password) {
       clearData();
-      setErr("Password does not match");
+      setErrMessage("Password does not match");
       return;
     }
     if (!acceptTerms) {
-      setErr("You should accept the terms and conditions of use to register");
+      setErrMessage(
+        "You should accept the terms and conditions of use to register"
+      );
       return;
     }
     try {
-      const res = await register(registerData);
+      const formData = { name, email, password };
+      const res = await register(formData);
 
       if (res.status === 201) {
         toggleForm();
-        setRegisterSuccessMessageVisible(true);
       } else if (res.status === 400) {
         const json = await res.json();
         setRegisterFailMessage(json.error);
@@ -94,14 +86,16 @@ const Register = ({ toggleForm }) => {
           Take your first step toward a sustainable future
         </Typography>
         <Box component="form" onSubmit={handleSubmit}>
-          {err && <Typography color="error">Error:{err}</Typography>}
+          {errMessage && (
+            <Typography color="error">Error:{errMessage}</Typography>
+          )}
           <TextField
             margin="normal"
             size="small"
             variant="outlined"
             name="name"
-            value={registerData.name}
-            onChange={handleChange}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             label="Name"
             type="text"
             autoComplete="off"
@@ -112,8 +106,8 @@ const Register = ({ toggleForm }) => {
             size="small"
             variant="outlined"
             name="email"
-            value={registerData.email}
-            onChange={handleChange}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             label="Email address"
             type="email"
             autoComplete="off"
@@ -125,8 +119,8 @@ const Register = ({ toggleForm }) => {
             type="password"
             name="password"
             variant="outlined"
-            value={registerData.password}
-            onChange={handleChange}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             label="Password"
             autoComplete="off"
             fullWidth
